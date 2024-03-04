@@ -4,7 +4,9 @@ namespace Microsoft\Kiota\Serialization\Form;
 
 use DateInterval;
 use DateTime;
+use DateTimeInterface;
 use GuzzleHttp\Psr7\Utils;
+use InvalidArgumentException;
 use Microsoft\Kiota\Abstractions\Enum;
 use Microsoft\Kiota\Abstractions\Serialization\Parsable;
 use Microsoft\Kiota\Abstractions\Serialization\SerializationWriter;
@@ -12,6 +14,7 @@ use Microsoft\Kiota\Abstractions\Types\Date;
 use Microsoft\Kiota\Abstractions\Types\Time;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
+use stdClass;
 
 class FormSerializationWriter implements SerializationWriter
 {
@@ -22,16 +25,50 @@ class FormSerializationWriter implements SerializationWriter
     /** @var callable|null */
     private $onStartObjectSerialization = null;
 
-    /** @var array<string> $jsonData */
-    private array $jsonData = [];
+    /** @var array<string> $writer */
+    private array $writer = [];
+
+
+    private const PROPERTY_SEPARATOR = '&';
 
     private int $depth = 0;
+
+
+    /**
+     * @param string $propertyName
+     * @return void
+     */
+    private function writePropertyName(string $propertyName): void
+    {
+        $this->writer []= "$propertyName=";
+    }
+
+    /**
+     * @param string|null $key
+     * @param string|float|int|bool $value
+     * @return void
+     */
+    private function writePropertyValue(?string $key, $value): void {
+        $this->writer []= $value;
+
+        if ($key !== null) {
+            $this->writer []= self::PROPERTY_SEPARATOR;
+        }
+    }
+
+
     /**
      * @inheritDoc
      */
     public function writeStringValue(?string $key, ?string $value): void
     {
-        // TODO: Implement writeStringValue() method.
+        $propertyValue = $value !== null ? '"'.addcslashes($value, "\\\r\n\"\t").'"' : '';
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $this->writePropertyValue($key, $propertyValue);
+        }
     }
 
     /**
@@ -39,7 +76,13 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeBooleanValue(?string $key, ?bool $value): void
     {
-
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $options = ['false', 'true'];
+            $this->writePropertyValue($key, $options[$value]);
+        }
     }
 
     /**
@@ -47,7 +90,12 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeFloatValue(?string $key, ?float $value): void
     {
-        // TODO: Implement writeFloatValue() method.
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $this->writePropertyValue($key, $value);
+        }
     }
 
     /**
@@ -55,7 +103,12 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeIntegerValue(?string $key, ?int $value): void
     {
-        // TODO: Implement writeIntegerValue() method.
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $this->writePropertyValue($key, $value);
+        }
     }
 
     /**
@@ -63,7 +116,12 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeDateTimeValue(?string $key, ?DateTime $value): void
     {
-        // TODO: Implement writeDateTimeValue() method.
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $this->writePropertyValue($key, "\"{$value->format(DateTimeInterface::RFC3339)}\"");
+        }
     }
 
     /**
@@ -118,7 +176,10 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function getSerializedContent(): StreamInterface
     {
-        return Utils::streamFor(implode("", $this->jsonData));
+        if (count($this->writer) > 0 && $this->writer[count($this->writer) - 1] === self::PROPERTY_SEPARATOR){
+            array_pop($this->writer);
+        }
+        return Utils::streamFor(implode('', $this->writer));
     }
 
     /**
@@ -126,7 +187,12 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeEnumValue(?string $key, ?Enum $value): void
     {
-        // TODO: Implement writeEnumValue() method.
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $this->writePropertyValue($key, "\"{$value->value()}\"");
+        }
     }
 
     /**
@@ -134,7 +200,21 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeCollectionOfEnumValues(?string $key, ?array $values): void
     {
-        // TODO: Implement writeCollectionOfEnumValues() method.
+        if ($values !== null) {
+            if($key !== null){
+                $this->writePropertyName($key);
+            }
+            foreach ($values as $v) {
+                $this->writeEnumValue(null, $v);
+                $this->writer [] = self::PROPERTY_SEPARATOR;
+            }
+            if (count($values) > 0) {
+                array_pop($this->writer);
+            }
+            if ($key !== null) {
+                $this->writer []= self::PROPERTY_SEPARATOR;
+            }
+        }
     }
 
     /**
@@ -150,7 +230,12 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeAdditionalData(?array $value): void
     {
-        // TODO: Implement writeAdditionalData() method.
+        if($value === null) {
+            return;
+        }
+        foreach ($value as $key => $val) {
+            $this->writeAnyValue($key, $val);
+        }
     }
 
     /**
@@ -158,7 +243,13 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeDateValue(?string $key, ?Date $value): void
     {
-        // TODO: Implement writeDateValue() method.
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $val = "\"$value\"";
+            $this->writePropertyValue($key, $val);
+        }
     }
 
     /**
@@ -166,7 +257,13 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeTimeValue(?string $key, ?Time $value): void
     {
-        // TODO: Implement writeTimeValue() method.
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $val = "\"$value\"";
+            $this->writePropertyValue($key, $val);
+        }
     }
 
     /**
@@ -174,7 +271,14 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeDateIntervalValue(?string $key, ?DateInterval $value): void
     {
-        // TODO: Implement writeDateIntervalValue() method.
+        if ($value !== null){
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $res = "P{$value->y}Y{$value->y}M{$value->d}DT{$value->h}H{$value->i}M{$value->s}S";
+            $val = "\"$res\"" ;
+            $this->writePropertyValue($key, $val);
+        }
     }
 
     /**
@@ -182,7 +286,21 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeCollectionOfPrimitiveValues(?string $key, ?array $value): void
     {
-        // TODO: Implement writeCollectionOfPrimitiveValues() method.
+        if ($value !== null) {
+            if (!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            foreach ($value as $val) {
+                $this->writeAnyValue($key, $val);
+                $this->writer [] = self::PROPERTY_SEPARATOR;
+            }
+            if (count($value) > 0) {
+                array_pop($this->writer);
+            }
+            if ($key !== null) {
+                $this->writer [] = self::PROPERTY_SEPARATOR;
+            }
+        }
     }
 
     /**
@@ -190,7 +308,74 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeAnyValue(?string $key, $value): void
     {
-        // TODO: Implement writeAnyValue() method.
+        if (is_null($value)) {
+            $this->writeNullValue($key);
+        } elseif (is_float($value)) {
+            $this->writeFloatValue($key, $value);
+        } elseif (is_string($value)) {
+            $this->writeStringValue($key, $value);
+        } elseif (is_int($value)) {
+            $this->writeIntegerValue($key, $value);
+        } elseif (is_bool($value)) {
+            $this->writeBooleanValue($key, $value);
+        } elseif ($value instanceof Date) {
+            $this->writeDateValue($key, $value);
+        } elseif ($value instanceof Time) {
+            $this->writeTimeValue($key, $value);
+        } elseif ($value instanceof DateInterval) {
+            $this->writeDateIntervalValue($key, $value);
+        } elseif ($value instanceof DateTime) {
+            $this->writeDateTimeValue($key, $value);
+        } elseif (is_array($value)) {
+            $keys = array_filter(array_keys($value), 'is_string');
+            // If there are string keys then that means this is a single
+            // object we are dealing with
+            // otherwise it is a collection of objects.
+            if (!empty($keys)) {
+                $this->writeNonParsableObjectValue($key, (object)$value);
+            } elseif (!empty($value)) {
+                if ($value[0] instanceof Parsable) {
+                    throw new RuntimeException('Form serialization does not support object nesting.');
+                } elseif ($value[0] instanceof Enum) {
+                    $this->writeCollectionOfEnumValues($key, $value);
+                } else {
+                    $this->writeCollectionOfPrimitiveValues($key, $value);
+                }
+            }
+        } elseif ($value instanceof stdClass) {
+            $this->writeNonParsableObjectValue($key, $value);
+        } elseif ($value instanceof Parsable) {
+            throw new RuntimeException('Form serialization does not support object nesting.');
+        } elseif ($value instanceof Enum) {
+            $this->writeEnumValue($key, $value);
+        } elseif ($value instanceof StreamInterface) {
+            $this->writeStringValue($key, $value->getContents());
+        } else {
+            $type = gettype($value);
+            throw new InvalidArgumentException("Could not serialize the object of type $type ");
+        }
+    }
+
+    /**
+     * @param string|null $key
+     * @param mixed|null $value
+     */
+    public function writeNonParsableObjectValue(?string $key, $value): void{
+        if ($value !== null) {
+            if(!empty($key)) {
+                $this->writePropertyName($key);
+            }
+            $value = (array)$value;
+            foreach ($value as $kKey => $kVal) {
+                $this->writeAnyValue($kKey, $kVal);
+            }
+            if (count($value) > 0) {
+                array_pop($this->writer);
+            }
+            if ($key !== null) {
+                $this->writer [] = self::PROPERTY_SEPARATOR;
+            }
+        }
     }
 
     /**

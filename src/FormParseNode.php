@@ -4,8 +4,10 @@ namespace Microsoft\Kiota\Serialization\Form;
 
 use DateInterval;
 use DateTime;
+use GuzzleHttp\Psr7\Utils;
 use InvalidArgumentException;
 use Microsoft\Kiota\Abstractions\Enum;
+use Microsoft\Kiota\Abstractions\Serialization\AdditionalDataHolder;
 use Microsoft\Kiota\Abstractions\Serialization\Parsable;
 use Microsoft\Kiota\Abstractions\Serialization\ParseNode;
 use Microsoft\Kiota\Abstractions\Types\Date;
@@ -20,26 +22,16 @@ class FormParseNode implements ParseNode
 
     /** @var callable(Parsable): void|null */
     private $onAfterAssignFieldValues = null;
-    private string $rawValue;
-    private string $decodedValue;
-    private array $fields = [];
 
-    public function __construct(string $rawValue)
+    /** @var mixed|null */
+    private $node;
+
+    /**
+     * @param mixed|null $rawValue
+     */
+    public function __construct($rawValue)
     {
-        $this->rawValue = $rawValue;
-        $this->decodedValue = urldecode($this->rawValue);
-        $this->fields = array_filter(array_map(fn ($val) => explode("=", $val), explode("&", $this->rawValue)), fn ($item) => count($item) == 2);
-        $finalResult = [];
-        foreach ($this->fields as $field) {
-            if (array_key_exists($field[0], $finalResult)) {
-                $finalResult[$field[0]] []= $field[1];
-            } else {
-                $finalResult[$field[0]] = [$field[1]];
-            }
-        }
-        var_dump($finalResult);
-        $this->fields = array_map(fn ($item) => implode(',', $item), $finalResult);
-        var_dump($this->fields);
+        $this->node = $rawValue;
     }
 
     /**
@@ -47,16 +39,23 @@ class FormParseNode implements ParseNode
      */
     public function getChildNode(string $identifier): ?ParseNode
     {
-        // TODO: Implement getChildNode() method.
+        if ((!is_array($this->node)) || (($this->node[$identifier] ?? null) === null)) {
+            return null;
+        }
+        return new self($this->node[$identifier]);
     }
     /**
      * @inheritDoc
      */
     public function getStringValue(): ?string
     {
-        // TODO: Implement getStringValue() method.
+        return $this->node !== null ? addcslashes(strval($this->node), "\\\t\r\n") : null;
     }
 
+    /**
+     * @param string|null $key
+     * @return string|null
+     */
     private function sanitizeKey(?string $key): ?string {
         if (empty($key)) return $key;
         return urldecode(trim($key));
@@ -66,7 +65,7 @@ class FormParseNode implements ParseNode
      */
     public function getBooleanValue(): ?bool
     {
-        // TODO: Implement getBooleanValue() method.
+        return $this->node !== null ? (bool)$this->node : null;
     }
 
     /**
@@ -74,7 +73,7 @@ class FormParseNode implements ParseNode
      */
     public function getIntegerValue(): ?int
     {
-        // TODO: Implement getIntegerValue() method.
+       return $this->node !== null ? intval($this->node) : null;
     }
 
     /**
@@ -82,7 +81,7 @@ class FormParseNode implements ParseNode
      */
     public function getFloatValue(): ?float
     {
-        // TODO: Implement getFloatValue() method.
+        return $this->node !== null ? floatval($this->node) : null;
     }
 
     /**
@@ -90,20 +89,58 @@ class FormParseNode implements ParseNode
      */
     public function getObjectValue(array $type): ?Parsable
     {
-       if (!method_exists(...$type)) {
-           throw new InvalidArgumentException("Function does not exist.");
-       }
-
-       $item = call_user_func($type);
-
-       call_user_func($this->getOnBeforeAssignFieldValues(), $item);
-       $this->assignFieldValues($item);
-       call_user_func($this->getOnAfterAssignFieldValues(), $item);
+        if ($this->node === null) {
+            return null;
+        }
+        if (!is_subclass_of($type[0], Parsable::class)){
+            throw new InvalidArgumentException("Invalid type $type[0] provided.");
+        }
+        if (!is_callable($type, true, $callableString)) {
+            throw new InvalidArgumentException('Undefined method '. $type[1]);
+        }
+        $result = $callableString($this);
+        if($this->getOnBeforeAssignFieldValues() !== null) {
+            $this->getOnBeforeAssignFieldValues()($result);
+        }
+        $this->assignFieldValues($result);
+        if ($this->getOnAfterAssignFieldValues() !== null){
+            $this->getOnAfterAssignFieldValues()($result);
+        }
+        return $result;
     }
 
-    private function assignFieldValues(Parsable $item): void
+    /**
+     * @param AdditionalDataHolder|Parsable $item
+     * @return void
+     */
+    private function assignFieldValues($item): void
     {
+        $fieldDeserializers = [];
+        if (is_a($item, Parsable::class)){
+            $fieldDeserializers = $item->getFieldDeserializers();
+        }
+        $isAdditionalDataHolder = false;
+        $additionalData = [];
+        if (is_a($item, AdditionalDataHolder::class)) {
+            $isAdditionalDataHolder = true;
+            $additionalData = $item->getAdditionalData() ?? [];
+        }
+        if (is_array($this->node)) {
+            foreach ($this->node as $key => $value) {
+                $deserializer = $fieldDeserializers[$key] ?? null;
 
+                if ($deserializer !== null) {
+                    $deserializer(new FormParseNode($value));
+                } else {
+                    $key                  = (string)$key;
+                    $additionalData[$key] = $value;
+                }
+            }
+        }
+
+        if ( $isAdditionalDataHolder ) {
+            $item->setAdditionalData($additionalData);
+        }
     }
 
     /**
@@ -111,47 +148,94 @@ class FormParseNode implements ParseNode
      */
     public function getCollectionOfObjectValues(array $type): ?array
     {
-        // TODO: Implement getCollectionOfObjectValues() method.
+        throw new \RuntimeException('Collection of objects are not supported.');
     }
 
     /**
      * @inheritDoc
+     * @throws \Exception
      */
     public function getCollectionOfPrimitiveValues(?string $typeName = null): ?array
     {
-        // TODO: Implement getCollectionOfPrimitiveValues() method.
+        if (!is_array($this->node)) {
+            return null;
+        }
+        return array_map(static function ($x) use ($typeName) {
+            $type = empty($typeName) ? get_debug_type($x) : $typeName;
+            return (new FormParseNode($x))->getAnyValue($type);
+        }, $this->node);
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getAnyValue(string $type) {
+        switch ($type){
+            case 'bool':
+                return $this->getBooleanValue();
+            case 'string':
+                return $this->getStringValue();
+            case 'int':
+                return $this->getIntegerValue();
+            case 'float':
+                return $this->getFloatValue();
+            case 'null':
+                return null;
+            case 'array':
+                return $this->getCollectionOfPrimitiveValues();
+            case Date::class:
+                return $this->getDateValue();
+            case Time::class:
+                return $this->getTimeValue();
+            default:
+                if (is_subclass_of($type, Enum::class)){
+                    return $this->getEnumValue($type);
+                }
+                if (is_subclass_of($type, StreamInterface::class)) {
+                    return $this->getBinaryContent();
+                }
+                throw new InvalidArgumentException("Unable to decode type $type");
+        }
+
     }
 
     /**
      * @inheritDoc
+     * @throws \Exception
      */
     public function getDateTimeValue(): ?DateTime
     {
-        // TODO: Implement getDateTimeValue() method.
+        return $this->node !== null ? new DateTime($this->node) : null;
     }
 
     /**
      * @inheritDoc
+     * @throws \Exception
      */
     public function getDateIntervalValue(): ?DateInterval
     {
-        // TODO: Implement getDateIntervalValue() method.
+        return ($this->node !== null) ? new DateInterval(strval($this->node)) : null;
     }
 
     /**
      * @inheritDoc
+     * @throws \Exception
      */
     public function getDateValue(): ?Date
     {
-        // TODO: Implement getDateValue() method.
+        $dateTime = $this->getDateTimeValue();
+        return $dateTime !== null ?  Date::createFromDateTime($dateTime) : null;
     }
 
     /**
      * @inheritDoc
+     * @throws \Exception
      */
     public function getTimeValue(): ?Time
     {
-        // TODO: Implement getTimeValue() method.
+        $dateTime = $this->getDateTimeValue();
+        return $dateTime !== null ?  Time::createFromDateTime($dateTime) : null;
     }
 
     /**
@@ -159,7 +243,13 @@ class FormParseNode implements ParseNode
      */
     public function getEnumValue(string $targetEnum): ?Enum
     {
-        // TODO: Implement getEnumValue() method.
+        if ($this->node === null){
+            return null;
+        }
+        if (!is_subclass_of($targetEnum, Enum::class)) {
+            throw new InvalidArgumentException('Invalid enum provided.');
+        }
+        return new $targetEnum($this->node);
     }
 
     /**
@@ -167,7 +257,15 @@ class FormParseNode implements ParseNode
      */
     public function getCollectionOfEnumValues(string $targetClass): ?array
     {
-        // TODO: Implement getCollectionOfEnumValues() method.
+        if (!is_array($this->node)) {
+            return null;
+        }
+        $result = array_map(static function ($val) use($targetClass) {
+            return $val->getEnumValue($targetClass);
+        }, array_map(static function ($value) {
+            return new FormParseNode($value);
+        }, $this->node));
+        return array_filter($result, fn ($item) => !is_null($item));
     }
 
     /**
@@ -175,7 +273,12 @@ class FormParseNode implements ParseNode
      */
     public function getBinaryContent(): ?StreamInterface
     {
-        // TODO: Implement getBinaryContent() method.
+        if (is_null($this->node)) {
+            return null;
+        } elseif (is_array($this->node)) {
+            return Utils::streamFor(json_encode($this->node));
+        }
+        return Utils::streamFor(strval($this->node));
     }
 
     /**
