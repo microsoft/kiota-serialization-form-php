@@ -23,7 +23,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteAdditionalData(): void {
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAdditionalData(['@odata.type' => 'Type']);
-        $expected = '"@odata.type":"Type"';
+        $expected = '%40odata.type=Type';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -31,7 +31,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteLongValue(): void {
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeIntegerValue("timestamp", 28192199291929192);
-        $expected = '"timestamp":28192199291929192';
+        $expected = 'timestamp=28192199291929192';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -43,7 +43,7 @@ class FormSerializationWriterTest extends TestCase
         $this->serializationWriter = new FormSerializationWriter();
         $date = Date::createFrom(2012, 12, 3);
         $this->serializationWriter->writeAnyValue("date", $date);
-        $expected = '"date":"2012-12-03"';
+        $expected = 'date=2012-12-03';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -51,7 +51,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteUUIDValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeStringValue("id", '9de7828f-4975-49c7-8734-805487dfb8a2');
-        $expected = '"id":"9de7828f-4975-49c7-8734-805487dfb8a2"';
+        $expected = 'id=9de7828f-4975-49c7-8734-805487dfb8a2';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -59,6 +59,8 @@ class FormSerializationWriterTest extends TestCase
     /**
      */
     public function testWriteCollectionOfNonParsableObjectValues(): void{
+
+        $this->expectException(\RuntimeException::class);
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeCollectionOfPrimitiveValues("stops", [1,2,3,4,5]);
         $expected = '"stops":[1,2,3,4,5]';
@@ -74,7 +76,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteFloatValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("height", 12.394);
-        $expected = '"height":12.394';
+        $expected = 'height=12.394';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -84,7 +86,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteEnumSetValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("status", new MaritalStatus('married,complicated'));
-        $expected = '"status":"married,complicated"';
+        $expected = 'status=married,complicated';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -92,7 +94,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteNullValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("nextPage", null);
-        $expected = '"nextPage":null';
+        $expected = 'nextPage=null';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -100,6 +102,7 @@ class FormSerializationWriterTest extends TestCase
     /**
      */
     public function testWriteCollectionOfObjectValues(): void{
+        $this->expectException(\RuntimeException::class);
         $this->serializationWriter = new FormSerializationWriter();
         $person1 = new Person();
         $person1->setName("John");
@@ -116,11 +119,11 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteObjectValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $person1 = new Person();
-        $person1->setName("John");
+        $person1->setName("John Kennedy");
         $person1->setMaritalStatus(new MaritalStatus('single'));
         $person1->setAdditionalData(['ages' => [12, 13, 14], 'mari' => ['sells', 'nothing'], 'safes' => []]);
         $this->serializationWriter->writeObjectValue('to', $person1);
-        $expected = 'name="John"&maritalStatus="single"&ages=12&ages=13&ages=14&mari="sells"&mari="nothing"';
+        $expected = 'name=John+Kennedy&maritalStatus=single&ages=12&ages=13&ages=14&mari=sells&mari=nothing';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -140,14 +143,14 @@ class FormSerializationWriterTest extends TestCase
         $jsonSerializationWriter->setOnAfterObjectSerialization($afterSerialization);
         $jsonSerializationWriter->setOnStartObjectSerialization($startSerialization);
         $jsonSerializationWriter->writeObjectValue("intersection", $person1, $address);
-        $expected = 'name="John"&maritalStatus="single"&city="Nairobi"';
+        $expected = 'name=John&maritalStatus=single&city=Nairobi';
         $this->assertEquals($expected, $jsonSerializationWriter->getSerializedContent()->getContents());
     }
 
     public function testWriteEnumValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("status", [new MaritalStatus('married'), new MaritalStatus('single')]);
-        $expected = '"status":["married","single"]';
+        $expected = 'status=married,single';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -156,7 +159,7 @@ class FormSerializationWriterTest extends TestCase
         $this->serializationWriter = new FormSerializationWriter();
         $time = new Time('11:00:00');
         $this->serializationWriter->writeAnyValue("created", $time);
-        $expected = '"created":"11:00:00"';
+        $expected = 'created=11:00:00';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -165,6 +168,7 @@ class FormSerializationWriterTest extends TestCase
      * @throws \Exception
      */
     public function testWriteNonParsableObjectValue(): void{
+        $this->expectException(\RuntimeException::class);
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("times", (object)[
             "start" => Time::createFrom(12,0, 23),
@@ -177,7 +181,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteBooleanValue(): void {
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("available", true);
-        $expected = '"available":true';
+        $expected = 'available=true';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -188,7 +192,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteTimeOnlyValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("time", Time::createFromDateTime(new \DateTime('2018-12-12T12:34:42+00:00Z')));
-        $expected = '"time":"12:34:42"';
+        $expected = 'time=12:34:42';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -196,7 +200,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteIntegerValue(): void {
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("age", 23);
-        $expected = '"age":23';
+        $expected = 'age=23';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -204,15 +208,15 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteDateTimeValue(): void {
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("dateTime", new \DateTime('2018-12-12T12:34:42+00:00'));
-        $expected = '"dateTime":"2018-12-12T12:34:42+00:00"';
+        $expected = 'dateTime=2018-12-12T12:34:42+00:00';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
 
     public function testGetSerializedContent(): void{
         $this->serializationWriter = new FormSerializationWriter();
-        $this->serializationWriter->writeAnyValue("statement", "This is a string");
-        $expected = '"statement":"This is a string"';
+        $this->serializationWriter->writeAnyValue("statement", "This is a string\tholta\b\n\n\tonce again");
+        $expected = 'statement=This+is+a+string%5Ctholta%5C%5Cb%5Cn%5Cn%5Ctonce+again';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -222,7 +226,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteStringValue(): void {
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("statement", "This is a string\n\r\t");
-        $expected = 'statement="This is a string\\n\\r\\t"';
+        $expected = 'statement=This+is+a+string%5Cn%5Cr%5Ct';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
@@ -237,7 +241,7 @@ class FormSerializationWriterTest extends TestCase
         $this->serializationWriter->writeAnyValue('timeTaken', $interval);
 
         $content = $this->serializationWriter->getSerializedContent();
-        $this->assertEquals('timeTaken="P0Y0M300DT0H0M100S"', $content->getContents());
+        $this->assertEquals('timeTaken=P0Y0M300DT0H0M100S', $content->getContents());
     }
 
     public function testWriteBinaryContentValue(): void
@@ -249,6 +253,6 @@ class FormSerializationWriterTest extends TestCase
         $this->serializationWriter->writeAnyValue('body3', $stream);
         $this->serializationWriter->writeBinaryContent('body2', null);
         $content = $this->serializationWriter->getSerializedContent();
-        $this->assertEquals("\"body\":\"Hello world!!!\\r\\t\\t\\t\\n\",\"body3\":\"Hello world!!!\\r\\t\\t\\t\\n\",\"body2\":null", $content->getContents());
+        $this->assertEquals("body=Hello+world%21%21%21%5Cr%5Ct%5Ct%5Ct%5Cn&body3=Hello+world%21%21%21%5Cr%5Ct%5Ct%5Ct%5Cn&body2=null", $content->getContents());
     }
 }

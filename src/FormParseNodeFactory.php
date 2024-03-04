@@ -31,17 +31,13 @@ class FormParseNodeFactory implements ParseNodeFactory
             $fields = array_filter(array_map(fn ($val) => explode("=", $val), explode("&", $streamContents)), fn ($item) => count($item) == 2);
             $finalResult = [];
             foreach ($fields as $field) {
-                if (array_key_exists($field[0], $finalResult)) {
-                    $finalResult[$field[0]] []= $field[1];
-                } else {
-                    $finalResult[$field[0]] = [$field[1]];
-                }
+                $key = $this->sanitizeKey($field[0]);
+                $finalResult[$key] = $field[1];
             }
-            $fields2 = array_map(fn ($item) => count($item) <= 1 ? implode(',', $item) : $item, $finalResult);
         } catch (Exception $ex){
             throw new \RuntimeException('The was a problem parsing the response.', 1, $ex);
         }
-        return new FormParseNode($fields2);
+        return new FormParseNode($finalResult);
     }
 
     /**
@@ -50,5 +46,14 @@ class FormParseNodeFactory implements ParseNodeFactory
     public function getValidContentType(): string
     {
         return 'application/x-www-form-urlencoded';
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    private function sanitizeKey(string $key): string {
+        if (empty($key)) return $key;
+        return urldecode(trim($key));
     }
 }

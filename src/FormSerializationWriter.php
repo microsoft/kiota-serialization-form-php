@@ -25,7 +25,7 @@ class FormSerializationWriter implements SerializationWriter
     /** @var callable|null */
     private $onStartObjectSerialization = null;
 
-    /** @var array<string|int|float|null> $writer */
+    /** @var array<bool|float|int|string|null> $writer */
     private array $writer = [];
 
 
@@ -40,7 +40,8 @@ class FormSerializationWriter implements SerializationWriter
      */
     private function writePropertyName(string $propertyName): void
     {
-        $this->writer []= "$propertyName=";
+        $key = urlencode($propertyName);
+        $this->writer []= "$key=";
     }
 
     /**
@@ -62,7 +63,7 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeStringValue(?string $key, ?string $value): void
     {
-        $propertyValue = $value !== null ? '"'.addcslashes($value, "\\\r\n\"\t").'"' : '';
+        $propertyValue = $value !== null ? urlencode(addcslashes($value, "\\\r\n\"\t")) : '';
         if ($value !== null) {
             if (!empty($key)) {
                 $this->writePropertyName($key);
@@ -120,7 +121,7 @@ class FormSerializationWriter implements SerializationWriter
             if (!empty($key)) {
                 $this->writePropertyName($key);
             }
-            $this->writePropertyValue($key, "\"{$value->format(DateTimeInterface::RFC3339)}\"");
+            $this->writePropertyValue($key, "{$value->format(DateTimeInterface::RFC3339)}");
         }
     }
 
@@ -191,7 +192,7 @@ class FormSerializationWriter implements SerializationWriter
             if (!empty($key)) {
                 $this->writePropertyName($key);
             }
-            $this->writePropertyValue($key, "\"{$value->value()}\"");
+            $this->writePropertyValue($key, "{$value->value()}");
         }
     }
 
@@ -206,7 +207,7 @@ class FormSerializationWriter implements SerializationWriter
             }
             foreach ($values as $v) {
                 $this->writeEnumValue(null, $v);
-                $this->writer [] = self::PROPERTY_SEPARATOR;
+                $this->writer [] = ',';
             }
             if (count($values) > 0) {
                 array_pop($this->writer);
@@ -247,7 +248,7 @@ class FormSerializationWriter implements SerializationWriter
             if (!empty($key)) {
                 $this->writePropertyName($key);
             }
-            $val = "\"$value\"";
+            $val = "$value";
             $this->writePropertyValue($key, $val);
         }
     }
@@ -261,7 +262,7 @@ class FormSerializationWriter implements SerializationWriter
             if (!empty($key)) {
                 $this->writePropertyName($key);
             }
-            $val = "\"$value\"";
+            $val = "$value";
             $this->writePropertyValue($key, $val);
         }
     }
@@ -276,8 +277,7 @@ class FormSerializationWriter implements SerializationWriter
                 $this->writePropertyName($key);
             }
             $res = "P{$value->y}Y{$value->y}M{$value->d}DT{$value->h}H{$value->i}M{$value->s}S";
-            $val = "\"$res\"" ;
-            $this->writePropertyValue($key, $val);
+            $this->writePropertyValue($key, $res);
         }
     }
 
@@ -357,11 +357,20 @@ class FormSerializationWriter implements SerializationWriter
      * @param mixed|null $value
      */
     public function writeNonParsableObjectValue(?string $key, $value): void{
+
+        if ($this->depth > 0) {
+            throw new RuntimeException('Form serialization does not support nesting.');
+        }
+        $this->depth++;
         if ($value !== null) {
+            $value = (array)$value;
+
             if(!empty($key)) {
+                if (count($value) > 0) {
+                    throw new RuntimeException('Form Serialization does not support nesting.');
+                }
                 $this->writePropertyName($key);
             }
-            $value = (array)$value;
             foreach ($value as $kKey => $kVal) {
                 $this->writeAnyValue($kKey, $kVal);
             }

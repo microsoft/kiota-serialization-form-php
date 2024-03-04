@@ -23,7 +23,7 @@ class FormParseNode implements ParseNode
     /** @var callable(Parsable): void|null */
     private $onAfterAssignFieldValues = null;
 
-    /** @var mixed|null */
+    /** @var mixed|null $node */
     private $node;
 
     /**
@@ -35,37 +35,48 @@ class FormParseNode implements ParseNode
     }
 
     /**
+     * Checks if the current node value is null or null string.
+     * @return bool
+     */
+    private function notNull(): bool
+    {
+        $val = $this->getStringValue();
+        return ($val !== null) && (strcasecmp($val, 'null') !== 0);
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    private function sanitizeKey(string $key): string {
+        if (empty($key)) return $key;
+        return urldecode(trim($key));
+    }
+
+    /**
      * @inheritDoc
      */
-    public function getChildNode(string $identifier): ?ParseNode
+    public function getChildNode(string $identifier): ?FormParseNode
     {
-        if ((!is_array($this->node)) || (($this->node[$identifier] ?? null) === null)) {
+        $sanitizedKey = $this->sanitizeKey($identifier);
+        if ((!is_array($this->node)) || (($this->node[$sanitizedKey] ?? null) === null)) {
             return null;
         }
-        return new self($this->node[$identifier]);
+        return new self($this->node[$sanitizedKey]);
     }
     /**
      * @inheritDoc
      */
     public function getStringValue(): ?string
     {
-        return $this->node !== null ? addcslashes(strval($this->node), "\\\t\r\n") : null;
-    }
-
-    /**
-     * @param string|null $key
-     * @return string|null
-     */
-    private function sanitizeKey(?string $key): ?string {
-        if (empty($key)) return $key;
-        return urldecode(trim($key));
+        return $this->notNull() ? addcslashes(strval($this->node), "\\\t\r\n") : null;
     }
     /**
      * @inheritDoc
      */
     public function getBooleanValue(): ?bool
     {
-        return $this->node !== null ? (bool)$this->node : null;
+        return $this->notNull() ? (bool)$this->node : null;
     }
 
     /**
@@ -73,7 +84,7 @@ class FormParseNode implements ParseNode
      */
     public function getIntegerValue(): ?int
     {
-       return $this->node !== null ? intval($this->node) : null;
+       return $this->notNull() ? intval($this->node) : null;
     }
 
     /**
@@ -81,7 +92,7 @@ class FormParseNode implements ParseNode
      */
     public function getFloatValue(): ?float
     {
-        return $this->node !== null ? floatval($this->node) : null;
+        return $this->notNull() ? floatval($this->node) : null;
     }
 
     /**
@@ -89,7 +100,7 @@ class FormParseNode implements ParseNode
      */
     public function getObjectValue(array $type): ?Parsable
     {
-        if ($this->node === null) {
+        if ($this->notNull()) {
             return null;
         }
         if (!is_subclass_of($type[0], Parsable::class)){
@@ -206,7 +217,8 @@ class FormParseNode implements ParseNode
      */
     public function getDateTimeValue(): ?DateTime
     {
-        return $this->node !== null ? new DateTime($this->node) : null;
+        $stringVal = $this->getStringValue();
+        return $stringVal !== null ? new DateTime($stringVal) : null;
     }
 
     /**
