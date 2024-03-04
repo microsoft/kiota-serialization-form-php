@@ -25,7 +25,7 @@ class FormSerializationWriter implements SerializationWriter
     /** @var callable|null */
     private $onStartObjectSerialization = null;
 
-    /** @var array<string> $writer */
+    /** @var array<string|int|float|null> $writer */
     private array $writer = [];
 
 
@@ -45,7 +45,7 @@ class FormSerializationWriter implements SerializationWriter
 
     /**
      * @param string|null $key
-     * @param string|float|int|bool $value
+     * @param string|float|int|bool|null $value
      * @return void
      */
     private function writePropertyValue(?string $key, $value): void {
@@ -287,12 +287,8 @@ class FormSerializationWriter implements SerializationWriter
     public function writeCollectionOfPrimitiveValues(?string $key, ?array $value): void
     {
         if ($value !== null) {
-            if (!empty($key)) {
-                $this->writePropertyName($key);
-            }
             foreach ($value as $val) {
                 $this->writeAnyValue($key, $val);
-                $this->writer [] = self::PROPERTY_SEPARATOR;
             }
             if (count($value) > 0) {
                 array_pop($this->writer);
@@ -383,7 +379,11 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeBinaryContent(?string $key, ?StreamInterface $value): void
     {
-        // TODO: Implement writeBinaryContent() method.
+        if ($value !== null) {
+            $this->writeStringValue($key, $value->getContents());
+        } else {
+            $this->writeNullValue($key);
+        }
     }
 
     /**

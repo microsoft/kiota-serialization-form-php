@@ -35,7 +35,7 @@ class TestEntity implements Parsable, AdditionalDataHolder {
     private ?string $name = null;
 
     /**
-     * @var array<int>|array<mixed>|null
+     * @var array<int>|null
      */
     private ?array $ages = null;
 
@@ -95,7 +95,7 @@ class TestEntity implements Parsable, AdditionalDataHolder {
     }
 
     /**
-     * @param array<int>|array<mixed>|null $value
+     * @param array<int>|null $value
      * @return void
      */
     public function setAges(?array $value): void
