@@ -4,6 +4,7 @@ namespace Microsoft\Kiota\Serialization\Form;
 
 use DateInterval;
 use DateTime;
+use Exception;
 use GuzzleHttp\Psr7\Utils;
 use InvalidArgumentException;
 use Microsoft\Kiota\Abstractions\Enum;
@@ -13,6 +14,7 @@ use Microsoft\Kiota\Abstractions\Serialization\ParseNode;
 use Microsoft\Kiota\Abstractions\Types\Date;
 use Microsoft\Kiota\Abstractions\Types\Time;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 
 class FormParseNode implements ParseNode
 {
@@ -38,10 +40,9 @@ class FormParseNode implements ParseNode
      * Checks if the current node value is null or null string.
      * @return bool
      */
-    private function notNull(): bool
+    private function isNull(): bool
     {
-        $val = $this->getStringValue();
-        return ($val !== null) && (strcasecmp($val, 'null') !== 0);
+        return ($this->node === null) || (is_string($this->node) && strcasecmp($this->node, 'null') === 0);
     }
 
     /**
@@ -69,14 +70,16 @@ class FormParseNode implements ParseNode
      */
     public function getStringValue(): ?string
     {
-        return $this->notNull() ? addcslashes(strval($this->node), "\\\t\r\n") : null;
+        return !$this->isNull()
+            ? addcslashes(strval($this->node), "\\\t\r\n")
+            : null;
     }
     /**
      * @inheritDoc
      */
     public function getBooleanValue(): ?bool
     {
-        return $this->notNull() ? (bool)$this->node : null;
+        return !$this->isNull() ? (bool)$this->node : null;
     }
 
     /**
@@ -84,7 +87,7 @@ class FormParseNode implements ParseNode
      */
     public function getIntegerValue(): ?int
     {
-       return $this->notNull() ? intval($this->node) : null;
+       return !$this->isNull() ? intval($this->node) : null;
     }
 
     /**
@@ -92,7 +95,7 @@ class FormParseNode implements ParseNode
      */
     public function getFloatValue(): ?float
     {
-        return $this->notNull() ? floatval($this->node) : null;
+        return !$this->isNull() ? floatval($this->node) : null;
     }
 
     /**
@@ -100,7 +103,7 @@ class FormParseNode implements ParseNode
      */
     public function getObjectValue(array $type): ?Parsable
     {
-        if ($this->notNull()) {
+        if ($this->isNull()) {
             return null;
         }
         if (!is_subclass_of($type[0], Parsable::class)){
@@ -139,7 +142,6 @@ class FormParseNode implements ParseNode
         if (is_array($this->node)) {
             foreach ($this->node as $key => $value) {
                 $deserializer = $fieldDeserializers[$key] ?? null;
-
                 if ($deserializer !== null) {
                     $deserializer(new FormParseNode($value));
                 } else {
@@ -159,12 +161,12 @@ class FormParseNode implements ParseNode
      */
     public function getCollectionOfObjectValues(array $type): ?array
     {
-        throw new \RuntimeException('Collection of objects are not supported.');
+        throw new RuntimeException('Collection of objects are not supported.');
     }
 
     /**
      * @inheritDoc
-     * @throws \Exception
+     * @throws Exception
      */
     public function getCollectionOfPrimitiveValues(?string $typeName = null): ?array
     {
@@ -179,7 +181,7 @@ class FormParseNode implements ParseNode
 
     /**
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function getAnyValue(string $type) {
         switch ($type){
@@ -213,7 +215,7 @@ class FormParseNode implements ParseNode
 
     /**
      * @inheritDoc
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDateTimeValue(): ?DateTime
     {
@@ -223,7 +225,7 @@ class FormParseNode implements ParseNode
 
     /**
      * @inheritDoc
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDateIntervalValue(): ?DateInterval
     {
@@ -232,7 +234,7 @@ class FormParseNode implements ParseNode
 
     /**
      * @inheritDoc
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDateValue(): ?Date
     {
@@ -242,7 +244,7 @@ class FormParseNode implements ParseNode
 
     /**
      * @inheritDoc
-     * @throws \Exception
+     * @throws Exception
      */
     public function getTimeValue(): ?Time
     {
@@ -255,7 +257,7 @@ class FormParseNode implements ParseNode
      */
     public function getEnumValue(string $targetEnum): ?Enum
     {
-        if ($this->node === null){
+        if ($this->isNull()){
             return null;
         }
         if (!is_subclass_of($targetEnum, Enum::class)) {
@@ -285,7 +287,7 @@ class FormParseNode implements ParseNode
      */
     public function getBinaryContent(): ?StreamInterface
     {
-        if (is_null($this->node)) {
+        if ($this->isNull()) {
             return null;
         } elseif (is_array($this->node)) {
             return Utils::streamFor(json_encode($this->node));
