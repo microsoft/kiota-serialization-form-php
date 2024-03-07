@@ -32,12 +32,13 @@ class FormParseNodeFactory implements ParseNodeFactory
             $finalResult = [];
             foreach ($fields as $field) {
                 $key = $this->sanitizeKey($field[0]);
-                $finalResult[$key] = $field[1];
+                $finalResult[$key] []= $field[1];
             }
+            $fields2 = array_map(fn ($item) => count($item) > 1 ? $item : $item[0], $finalResult);
         } catch (Exception $ex){
             throw new \RuntimeException('The was a problem parsing the response.', 1, $ex);
         }
-        return new FormParseNode($finalResult);
+        return new FormParseNode($fields2);
     }
 
     /**
