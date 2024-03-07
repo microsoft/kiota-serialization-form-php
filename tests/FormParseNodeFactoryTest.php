@@ -16,6 +16,7 @@ class FormParseNodeFactoryTest extends TestCase
     public function testGetRootParseNode(): void
     {
         $parseNode = (new FormParseNodeFactory())->getRootParseNode((new FormParseNodeFactory())->getValidContentType(), Utils::streamFor('name=Hello&age=23&age=34&age=45'));
+        /** @var TestEntity $obj */
         $obj = $parseNode->getObjectValue([TestEntity::class, 'createFromDiscriminatorValue']);
         $this->assertNotNull($obj);
         $this->assertEquals([23,34,45], $obj->getAges());

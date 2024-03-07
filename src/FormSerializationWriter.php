@@ -202,12 +202,8 @@ class FormSerializationWriter implements SerializationWriter
     public function writeCollectionOfEnumValues(?string $key, ?array $values): void
     {
         if ($values !== null) {
-            if($key !== null){
-                $this->writePropertyName($key);
-            }
             foreach ($values as $v) {
-                $this->writeEnumValue(null, $v);
-                $this->writer [] = ',';
+                $this->writeEnumValue($key, $v);
             }
             if (count($values) > 0) {
                 array_pop($this->writer);

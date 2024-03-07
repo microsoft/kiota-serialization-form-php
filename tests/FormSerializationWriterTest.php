@@ -150,7 +150,7 @@ class FormSerializationWriterTest extends TestCase
     public function testWriteEnumValue(): void{
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("status", [new MaritalStatus('married'), new MaritalStatus('single')]);
-        $expected = 'status=married,single';
+        $expected = 'status=married&status=single';
         $actual = $this->serializationWriter->getSerializedContent()->getContents();
         $this->assertEquals($expected, $actual);
     }
