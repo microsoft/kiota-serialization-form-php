@@ -251,8 +251,7 @@ class FormSerializationWriterTest extends TestCase
         $this->serializationWriter->writeBinaryContent('body', $stream);
         $stream->rewind();
         $this->serializationWriter->writeAnyValue('body3', $stream);
-        $this->serializationWriter->writeBinaryContent('body2', null);
         $content = $this->serializationWriter->getSerializedContent();
-        $this->assertEquals("body=Hello+world%21%21%21%5Cr%5Ct%5Ct%5Ct%5Cn&body3=Hello+world%21%21%21%5Cr%5Ct%5Ct%5Ct%5Cn&body2=null", $content->getContents());
+        $this->assertEquals("body=Hello+world%21%21%21%5Cr%5Ct%5Ct%5Ct%5Cn&body3=Hello+world%21%21%21%5Cr%5Ct%5Ct%5Ct%5Cn", $content->getContents());
     }
 }

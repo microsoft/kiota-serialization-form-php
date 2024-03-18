@@ -389,8 +389,6 @@ class FormSerializationWriter implements SerializationWriter
     {
         if ($value !== null) {
             $this->writeStringValue($key, $value->getContents());
-        } else {
-            $this->writeNullValue($key);
         }
     }
 
