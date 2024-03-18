@@ -63,14 +63,11 @@ class FormSerializationWriterTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeCollectionOfPrimitiveValues("stops", [1,2,3,4,5]);
-        $expected = '"stops":[1,2,3,4,5]';
-        $actual = $this->serializationWriter->getSerializedContent()->getContents();
+        $expected = 'stops=1&stops=2&stops=3&stops=4&stops=5';
+        $this->assertEquals($expected, $this->serializationWriter->getSerializedContent());
         $this->serializationWriter = new FormSerializationWriter();
         $this->serializationWriter->writeAnyValue("stops", ["first" => 'First', 'second' => 'Second']);
-        $expected2 = '"stops":{"first":"First","second":"Second"}';
-        $actual2 = $this->serializationWriter->getSerializedContent()->getContents();
-        $this->assertEquals($expected, $actual);
-        $this->assertEquals($expected2, $actual2);
+        $this->serializationWriter->getSerializedContent()->getContents();
     }
 
     public function testWriteFloatValue(): void{
