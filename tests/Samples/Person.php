@@ -17,6 +17,10 @@ class Person implements Parsable, AdditionalDataHolder
     private ?float $height = null;
 
     private ?MaritalStatus $maritalStatus = null;
+
+
+    /** @var BioContentType[]|null  */
+    private ?array $bioContentType = null;
     /**
      * @inheritDoc
      */
@@ -28,7 +32,8 @@ class Person implements Parsable, AdditionalDataHolder
             "age" => function (ParseNode $n) use ($currentObject) {$currentObject->setAge($n->getIntegerValue());},
             "height" => function (ParseNode $n) use ($currentObject) {$currentObject->setHeight($n->getFloatValue());},
             "maritalStatus" => function (ParseNode $n) use ($currentObject) {$currentObject->setMaritalStatus($n->getEnumValue(MaritalStatus::class));},
-            "address" => function (ParseNode $n) use ($currentObject) {$currentObject->setAddress($n->getObjectValue(array(Address::class, 'createFromDiscriminatorValue')));}
+            "address" => function (ParseNode $n) use ($currentObject) {$currentObject->setAddress($n->getObjectValue(array(Address::class, 'createFromDiscriminatorValue')));},
+            "type" => function (ParseNode $n) use ($currentObject) {$currentObject->setBioContentType($n->getCollectionOfEnumValues(BioContentType::class));}
         ];
     }
 
@@ -40,9 +45,25 @@ class Person implements Parsable, AdditionalDataHolder
         $writer->writeIntegerValue('age', $this->age);
         $writer->writeEnumValue('maritalStatus', $this->maritalStatus);
         $writer->writeFloatValue('height', $this->height);
+        $writer->writeCollectionOfEnumValues('type', $this->bioContentType);
         $writer->writeAdditionalData($this->additionalData);
     }
 
+    /**
+     * @return array<BioContentType>|null
+     */
+    public function getBioContentType(): ?array
+    {
+        return $this->bioContentType;
+    }
+
+    /**
+     * @param array<BioContentType>|null $bioContentType
+     */
+    public function setBioContentType(?array $bioContentType): void
+    {
+        $this->bioContentType = $bioContentType;
+    }
     /**
      * @inheritDoc
      */

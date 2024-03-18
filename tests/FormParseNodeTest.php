@@ -12,6 +12,7 @@ use Microsoft\Kiota\Abstractions\Types\Date;
 use Microsoft\Kiota\Abstractions\Types\Time;
 use Microsoft\Kiota\Serialization\Form\FormParseNode;
 use Microsoft\Kiota\Serialization\Form\FormParseNodeFactory;
+use Microsoft\Kiota\Serialization\Tests\Samples\BioContentType;
 use Microsoft\Kiota\Serialization\Tests\Samples\MaritalStatus;
 use Microsoft\Kiota\Serialization\Tests\Samples\Person;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +24,7 @@ class FormParseNodeTest extends TestCase
     private StreamInterface $stream;
 
     protected function setUp(): void {
-        $this->stream = Utils::streamFor('@odata.type=Missing&name=Silas+Kenneth&age=98&height=123.122&maritalStatus=complicated,single');
+        $this->stream = Utils::streamFor('@odata.type=Missing&name=Silas+Kenneth&age=98&height=123.122&maritalStatus=complicated,single&type=html&type=json&type=plain');
     }
 
     public function testGetIntegerValue(): void {
@@ -48,12 +49,12 @@ class FormParseNodeTest extends TestCase
         $this->parseNode = (new FormParseNodeFactory())->getRootParseNode('application/x-www-form-urlencoded', $this->stream);
         /** @var Person $expected */
         $expected = $this->parseNode->getObjectValue(array(Person::class, 'createFromDiscriminatorValue'));
-        print_r($expected);
         $this->assertInstanceOf(Person::class, $expected);
         $this->assertEquals('Silas Kenneth', $expected->getName());
         $this->assertInstanceOf(Enum::class, $expected->getMaritalStatus());
         $this->assertEquals(98, $expected->getAge());
         $this->assertEquals(123.122, $expected->getHeight());
+        $this->assertEquals([new BioContentType('html'), new BioContentType('json'), new BioContentType('plain')], $expected->getBioContentType());
     }
 
     public function testGetFloatValue(): void {
