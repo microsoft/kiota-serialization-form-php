@@ -71,7 +71,7 @@ class FormParseNode implements ParseNode
     public function getStringValue(): ?string
     {
         return !$this->isNull()
-            ? addcslashes(strval($this->node), "\\\t\r\n")
+            ? urldecode(addcslashes(strval($this->node), "\\\t\r\n"))
             : null;
     }
     /**
@@ -219,8 +219,7 @@ class FormParseNode implements ParseNode
      */
     public function getDateTimeValue(): ?DateTime
     {
-        $stringVal = $this->getStringValue();
-        return $stringVal !== null ? new DateTime($stringVal) : null;
+        return $this->node !== null ? new DateTime(strval($this->node)) : null;
     }
 
     /**
@@ -238,8 +237,7 @@ class FormParseNode implements ParseNode
      */
     public function getDateValue(): ?Date
     {
-        $dateTime = $this->getDateTimeValue();
-        return $dateTime !== null ?  Date::createFromDateTime($dateTime) : null;
+        return $this->node !== null ?  new Date(strval($this->node)): null;
     }
 
     /**
