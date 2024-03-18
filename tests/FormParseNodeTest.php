@@ -161,12 +161,12 @@ class FormParseNodeTest extends TestCase
 
     public function testGetBinaryContent(): void {
         $this->parseNode = new FormParseNode(100);
-        $this->assertEquals("100", $this->parseNode->getBinaryContent()->getContents());
+        $this->assertEquals("100", $this->parseNode->getBinaryContent());
     }
 
     public function testGetBinaryContentFromArray(): void {
         $this->parseNode = new FormParseNode($this->stream->getContents());
         $this->stream->rewind();
-        $this->assertEquals($this->stream->getContents(), $this->parseNode->getBinaryContent()->getContents());
+        $this->assertEquals($this->stream->getContents(), $this->parseNode->getBinaryContent());
     }
 }
