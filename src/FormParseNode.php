@@ -11,6 +11,7 @@ use Microsoft\Kiota\Abstractions\Enum;
 use Microsoft\Kiota\Abstractions\Serialization\AdditionalDataHolder;
 use Microsoft\Kiota\Abstractions\Serialization\Parsable;
 use Microsoft\Kiota\Abstractions\Serialization\ParseNode;
+use Microsoft\Kiota\Abstractions\Serialization\ParseNodeFromStringTrait;
 use Microsoft\Kiota\Abstractions\Types\Date;
 use Microsoft\Kiota\Abstractions\Types\Time;
 use Psr\Http\Message\StreamInterface;
@@ -18,6 +19,7 @@ use RuntimeException;
 
 class FormParseNode implements ParseNode
 {
+    use ParseNodeFromStringTrait;
 
     /** @var callable(Parsable): void|null $onBeforeAssignFieldValues */
     private $onBeforeAssignFieldValues = null;
@@ -228,7 +230,7 @@ class FormParseNode implements ParseNode
      */
     public function getDateIntervalValue(): ?DateInterval
     {
-        return ($this->node !== null) ? new DateInterval(strval($this->node)) : null;
+        return ($this->node !== null) ? $this->parseDateIntervalFromString(strval($this->node)) : null;
     }
 
     /**

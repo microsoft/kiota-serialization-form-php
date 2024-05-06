@@ -234,7 +234,7 @@ class FormSerializationWriterTest extends TestCase
         $this->serializationWriter->writeAnyValue('timeTaken', $interval);
 
         $content = $this->serializationWriter->getSerializedContent();
-        $this->assertEquals('timeTaken=P0Y0M300DT0H0M100S', $content->getContents());
+        $this->assertEquals('timeTaken=P300DT100S', $content->getContents());
     }
 
     public function testWriteBinaryContentValue(): void
