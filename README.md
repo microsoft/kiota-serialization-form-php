@@ -1,6 +1,6 @@
 # Kiota URI Form Encoded Serialization Library for PHP
 
-[![Build and Test](https://github.com/microsoft/kiota-serialization-form-php/actions/workflows/build-and_test.yml/badge.svg?branch=main)](https://github.com/microsoft/kiota-serialization-form-php/actions/workflows/build-and_test.yml)
+[![Build and Test](https://github.com/microsoft/kiota-serialization-form-php/actions/workflows/pr-validation.yml/badge.svg?branch=main)](https://github.com/microsoft/kiota-serialization-form-php/actions/workflows/pr-validation.yml)
 
 The Form Serialization Library for PHP is the PHP `application/x-www-form-urlencoded` serialization library implementation.
 
