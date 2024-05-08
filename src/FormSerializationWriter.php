@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use Microsoft\Kiota\Abstractions\Enum;
 use Microsoft\Kiota\Abstractions\Serialization\Parsable;
 use Microsoft\Kiota\Abstractions\Serialization\SerializationWriter;
+use Microsoft\Kiota\Abstractions\Serialization\SerializationWriterToStringTrait;
 use Microsoft\Kiota\Abstractions\Types\Date;
 use Microsoft\Kiota\Abstractions\Types\Time;
 use Psr\Http\Message\StreamInterface;
@@ -18,6 +19,7 @@ use stdClass;
 
 class FormSerializationWriter implements SerializationWriter
 {
+    use SerializationWriterToStringTrait;
     /** @var callable|null  */
     private $onAfterObjectSerialization = null;
     /** @var callable|null  */
@@ -63,12 +65,12 @@ class FormSerializationWriter implements SerializationWriter
      */
     public function writeStringValue(?string $key, ?string $value): void
     {
-        $propertyValue = $value !== null ? urlencode(addcslashes($value, "\\\r\n\"\t")) : '';
         if ($value !== null) {
             if (!empty($key)) {
                 $this->writePropertyName($key);
             }
-            $this->writePropertyValue($key, $propertyValue);
+            $urlEncodedString = urlencode($this->getStringValueAsEscapedString($value));
+            $this->writePropertyValue($key, $urlEncodedString);
         }
     }
 
@@ -121,7 +123,7 @@ class FormSerializationWriter implements SerializationWriter
             if (!empty($key)) {
                 $this->writePropertyName($key);
             }
-            $this->writePropertyValue($key, "{$value->format(DateTimeInterface::RFC3339)}");
+            $this->writePropertyValue($key, $this->getDateTimeValueAsString($value));
         }
     }
 
@@ -275,8 +277,7 @@ class FormSerializationWriter implements SerializationWriter
             if (!empty($key)) {
                 $this->writePropertyName($key);
             }
-            $res = "P{$value->y}Y{$value->y}M{$value->d}DT{$value->h}H{$value->i}M{$value->s}S";
-            $this->writePropertyValue($key, $res);
+            $this->writePropertyValue($key, $this->getDateIntervalValueAsString($value));
         }
     }
 
