@@ -35,6 +35,7 @@ class FormParseNodeFactory implements ParseNodeFactory
                 $finalResult[$key] []= $field[1];
             }
             $fields2 = array_map(fn ($item) => count($item) > 1 ? $item : $item[0], $finalResult);
+            var_dump($fields2);
         } catch (Exception $ex){
             throw new \RuntimeException('The was a problem parsing the response.', 1, $ex);
         }

@@ -24,11 +24,14 @@ class FormParseNodeTest extends TestCase
     private StreamInterface $stream;
 
     protected function setUp(): void {
-        $this->stream = Utils::streamFor('@odata.type=Missing&name=Silas+Kenneth&age=98&height=123.122&maritalStatus=complicated,single&type=html&type=json&type=plain');
+        $this->stream = Utils::streamFor('@odata.type=Missing&name=Silas+Kenneth&age=98&height=123.122&maritalStatus=complicated,single&type=html&type=json&type=plain&seen=true');
     }
 
     public function testGetIntegerValue(): void {
-        $this->parseNode = new FormParseNode('1243.78');
+        $this->parseNode = new FormParseNode(1243.78);
+        $expected = $this->parseNode->getIntegerValue();
+        $this->assertEquals(null, $expected);
+        $this->parseNode = new FormParseNode(1243);
         $expected = $this->parseNode->getIntegerValue();
         $this->assertEquals(1243, $expected);
     }
@@ -54,11 +57,12 @@ class FormParseNodeTest extends TestCase
         $this->assertInstanceOf(Enum::class, $expected->getMaritalStatus());
         $this->assertEquals(98, $expected->getAge());
         $this->assertEquals(123.122, $expected->getHeight());
+        $this->assertEquals(true, $expected->getSeen());
         $this->assertEquals([new BioContentType('html'), new BioContentType('json'), new BioContentType('plain')], $expected->getBioContentType());
     }
 
     public function testGetFloatValue(): void {
-        $this->parseNode = new FormParseNode('1243.12');
+        $this->parseNode = new FormParseNode(1243.12);
         $expected = $this->parseNode->getFloatValue();
         $this->assertEquals(1243.12, $expected);
     }
@@ -124,7 +128,7 @@ class FormParseNodeTest extends TestCase
     }
 
     public function testGetBooleanValue(): void {
-        $this->parseNode = new FormParseNode(true);
+        $this->parseNode = new FormParseNode('true');
         $expected = $this->parseNode->getBooleanValue();
         $this->assertEquals('bool', get_debug_type($expected));
         $this->assertEquals(true, $expected);
