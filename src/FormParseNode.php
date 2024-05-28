@@ -72,7 +72,7 @@ class FormParseNode implements ParseNode
      */
     public function getStringValue(): ?string
     {
-        return is_string($this->node)
+        return is_string($this->node) && !$this->isNull()
             ? urldecode(addcslashes($this->node, "\\\t\r\n"))
             : null;
     }
