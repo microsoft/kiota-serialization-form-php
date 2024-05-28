@@ -81,7 +81,6 @@ class FormParseNode implements ParseNode
      */
     public function getBooleanValue(): ?bool
     {
-        $validVals = ['true' => true, 'false' => false];
         return (!$this->isNull() && filter_var($this->node, FILTER_VALIDATE_BOOLEAN)) ? boolval($this->node) : null;
     }
 
