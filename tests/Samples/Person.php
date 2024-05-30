@@ -21,6 +21,8 @@ class Person implements Parsable, AdditionalDataHolder
 
     /** @var BioContentType[]|null  */
     private ?array $bioContentType = null;
+
+    private ?bool $seen = null;
     /**
      * @inheritDoc
      */
@@ -33,8 +35,25 @@ class Person implements Parsable, AdditionalDataHolder
             "height" => function (ParseNode $n) use ($currentObject) {$currentObject->setHeight($n->getFloatValue());},
             "maritalStatus" => function (ParseNode $n) use ($currentObject) {$currentObject->setMaritalStatus($n->getEnumValue(MaritalStatus::class));},
             "address" => function (ParseNode $n) use ($currentObject) {$currentObject->setAddress($n->getObjectValue(array(Address::class, 'createFromDiscriminatorValue')));},
-            "type" => function (ParseNode $n) use ($currentObject) {$currentObject->setBioContentType($n->getCollectionOfEnumValues(BioContentType::class));}
+            "type" => function (ParseNode $n) use ($currentObject) {$currentObject->setBioContentType($n->getCollectionOfEnumValues(BioContentType::class));},
+            "seen" => function (ParseNode $n) use ($currentObject) {$currentObject->setSeen($n->getBooleanValue());}
         ];
+    }
+
+    /**
+     * @param bool|null $seen
+     */
+    public function setSeen(?bool $seen): void
+    {
+        $this->seen = $seen;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getSeen(): ?bool
+    {
+        return $this->seen;
     }
 
     /**
@@ -45,6 +64,7 @@ class Person implements Parsable, AdditionalDataHolder
         $writer->writeIntegerValue('age', $this->age);
         $writer->writeEnumValue('maritalStatus', $this->maritalStatus);
         $writer->writeFloatValue('height', $this->height);
+        $writer->writeBooleanValue('seen', $this->seen);
         $writer->writeCollectionOfEnumValues('type', $this->bioContentType);
         $writer->writeAdditionalData($this->additionalData);
     }

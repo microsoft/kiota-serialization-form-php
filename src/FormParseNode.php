@@ -72,8 +72,8 @@ class FormParseNode implements ParseNode
      */
     public function getStringValue(): ?string
     {
-        return !$this->isNull()
-            ? urldecode(addcslashes(strval($this->node), "\\\t\r\n"))
+        return is_string($this->node) && !$this->isNull()
+            ? urldecode(addcslashes($this->node, "\\\t\r\n"))
             : null;
     }
     /**
@@ -81,7 +81,7 @@ class FormParseNode implements ParseNode
      */
     public function getBooleanValue(): ?bool
     {
-        return !$this->isNull() ? (bool)$this->node : null;
+        return (!$this->isNull() && filter_var($this->node, FILTER_VALIDATE_BOOLEAN)) ? boolval($this->node) : null;
     }
 
     /**
@@ -89,7 +89,7 @@ class FormParseNode implements ParseNode
      */
     public function getIntegerValue(): ?int
     {
-       return !$this->isNull() ? intval($this->node) : null;
+       return !$this->isNull() && filter_var($this->node, FILTER_VALIDATE_INT, FILTER_FLAG_NONE) ? intval($this->node) : null;
     }
 
     /**
@@ -221,7 +221,7 @@ class FormParseNode implements ParseNode
      */
     public function getDateTimeValue(): ?DateTime
     {
-        return $this->node !== null ? new DateTime(strval($this->node)) : null;
+        return is_string($this->node) ? new DateTime($this->node) : null;
     }
 
     /**
