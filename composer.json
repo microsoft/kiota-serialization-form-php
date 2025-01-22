@@ -37,7 +37,7 @@
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",
-        "phpunit/phpunit": "^9.6.22 || ^11.5.3",
+        "phpunit/phpunit": "^9.6.22",
         "phpstan/phpstan": "^1.12.16"
     },
     "config": {
