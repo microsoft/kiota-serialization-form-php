@@ -13,8 +13,14 @@ Read more about Kiota [here](https://github.com/microsoft/kiota/blob/main/README
 
 ## Using the Kiota Json Serialization Library
 
-```shell
-composer require microsoft/kiota-serialization-form
+```
+{
+    "require": {
+        // x-release-please-start-version
+        "microsoft/kiota-serialization-form": "^1.1.0"
+        // x-release-please-end
+    }
+}
 ```
 
 ## Contributing
