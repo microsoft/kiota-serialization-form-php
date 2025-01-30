@@ -1,6 +1,6 @@
 <?php
 
-namespace Microsoft\Kiota\Serialization\Tests;
+namespace Microsoft\Kiota\Serialization\Form\Tests;
 
 use DateTime;
 use DateTimeInterface;
@@ -12,9 +12,9 @@ use Microsoft\Kiota\Abstractions\Types\Date;
 use Microsoft\Kiota\Abstractions\Types\Time;
 use Microsoft\Kiota\Serialization\Form\FormParseNode;
 use Microsoft\Kiota\Serialization\Form\FormParseNodeFactory;
-use Microsoft\Kiota\Serialization\Tests\Samples\BioContentType;
-use Microsoft\Kiota\Serialization\Tests\Samples\MaritalStatus;
-use Microsoft\Kiota\Serialization\Tests\Samples\Person;
+use Microsoft\Kiota\Serialization\Form\Tests\Samples\BioContentType;
+use Microsoft\Kiota\Serialization\Form\Tests\Samples\MaritalStatus;
+use Microsoft\Kiota\Serialization\Form\Tests\Samples\Person;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 

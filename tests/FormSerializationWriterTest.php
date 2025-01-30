@@ -1,6 +1,6 @@
 <?php
 
-namespace Microsoft\Kiota\Serialization\Tests;
+namespace Microsoft\Kiota\Serialization\Form\Tests;
 
 use DateInterval;
 use GuzzleHttp\Psr7\Utils;
@@ -9,9 +9,9 @@ use Microsoft\Kiota\Abstractions\Serialization\SerializationWriter;
 use Microsoft\Kiota\Abstractions\Types\Date;
 use Microsoft\Kiota\Abstractions\Types\Time;
 use Microsoft\Kiota\Serialization\Form\FormSerializationWriter;
-use Microsoft\Kiota\Serialization\Tests\Samples\Address;
-use Microsoft\Kiota\Serialization\Tests\Samples\MaritalStatus;
-use Microsoft\Kiota\Serialization\Tests\Samples\Person;
+use Microsoft\Kiota\Serialization\Form\Tests\Samples\Address;
+use Microsoft\Kiota\Serialization\Form\Tests\Samples\MaritalStatus;
+use Microsoft\Kiota\Serialization\Form\Tests\Samples\Person;
 use PHPUnit\Framework\TestCase;
 
 class FormSerializationWriterTest extends TestCase

@@ -1,6 +1,6 @@
 <?php
 
-namespace Microsoft\Kiota\Serialization\Tests\Samples;
+namespace Microsoft\Kiota\Serialization\Form\Tests\Samples;
 
 use Microsoft\Kiota\Abstractions\Serialization\AdditionalDataHolder;
 use Microsoft\Kiota\Abstractions\Serialization\Parsable;
@@ -18,6 +18,7 @@ class Person implements Parsable, AdditionalDataHolder
 
     private ?MaritalStatus $maritalStatus = null;
 
+    private ?Address $address = null;
 
     /** @var BioContentType[]|null  */
     private ?array $bioContentType = null;

@@ -17,7 +17,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Microsoft\\Kiota\\Serialization\\Tests\\": "tests"
+            "Microsoft\\Kiota\\Serialization\\Form\\Tests\\": "tests"
         }
     },
     "repositories": [

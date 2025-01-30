@@ -1,6 +1,6 @@
 <?php
 
-namespace Microsoft\Kiota\Serialization\Tests;
+namespace Microsoft\Kiota\Serialization\Form\Tests;
 
 use GuzzleHttp\Psr7\Utils;
 use Microsoft\Kiota\Abstractions\Serialization\AdditionalDataHolder;
