@@ -1,7 +1,6 @@
 {
     "name": "microsoft/kiota-serialization-form",
     "description": "Form implementation of Kiota abstractions serialization.",
-    "version": "1.1.1",
     "authors": [
         {
             "name": "Microsoft Graph Client Tooling",
