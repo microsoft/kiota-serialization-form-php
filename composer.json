@@ -8,7 +8,9 @@
             "role": "Developer"
         }
     ],
-    "license": ["MIT"],
+    "license": [
+        "MIT"
+    ],
     "autoload": {
         "psr-4": {
             "Microsoft\\Kiota\\Serialization\\Form\\": "src"
@@ -20,7 +22,7 @@
         }
     },
     "require": {
-        "microsoft/kiota-abstractions": "^1.4.0",
+        "microsoft/kiota-abstractions": "^1.5.0",
         "guzzlehttp/psr7": "^1.6 || ^2",
         "php": "^7.4 || ^8.0",
         "ext-json": "*"
