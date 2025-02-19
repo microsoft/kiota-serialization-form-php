@@ -1,8 +1,0 @@
-parameters:
-  level: 9
-  polluteScopeWithAlwaysIterableForeach: false
-  polluteScopeWithLoopInitialAssignments: false
-  ignoreErrors:
-        - '/^Parameter #1 \$[A-Za-z_0-9]+ of function (strval|intval|floatval) expects (array\||)bool\|float\|int\|resource\|string\|null, mixed given.$/'
-  paths:
-    - src
