@@ -22,7 +22,7 @@
         }
     },
     "require": {
-        "microsoft/kiota-abstractions": "^1.5.2",
+        "microsoft/kiota-abstractions": "^2.0.0",
         "guzzlehttp/psr7": "^1.6 || ^2",
         "php": "^8.2",
         "ext-json": "*"
