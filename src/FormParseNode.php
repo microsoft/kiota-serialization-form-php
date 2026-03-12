@@ -44,7 +44,17 @@ class FormParseNode implements ParseNode
      */
     private function isNull(): bool
     {
-        return ($this->node === null) || (is_string($this->node) && strcasecmp($this->node, 'null') === 0);
+        return self::isNullRaw($this->node);
+    }
+
+    /**
+     * Checks if the given raw value is null or a null string.
+     * @param mixed $rawValue
+     * @return bool
+     */
+    private static function isNullRaw(mixed $rawValue): bool
+    {
+        return ($rawValue === null) || (is_string($rawValue) && strcasecmp($rawValue, 'null') === 0);
     }
 
     /**
@@ -72,16 +82,27 @@ class FormParseNode implements ParseNode
      */
     public function getStringValue(): ?string
     {
-        return is_string($this->node) && !$this->isNull()
-            ? urldecode($this->node)
+        return self::getStringValueFromRaw($this->node);
+    }
+
+    private static function getStringValueFromRaw(mixed $rawValue): ?string
+    {
+        return is_string($rawValue) && !self::isNullRaw($rawValue)
+            ? urldecode($rawValue)
             : null;
     }
+
     /**
      * @inheritDoc
      */
     public function getBooleanValue(): ?bool
     {
-        return (!$this->isNull() && filter_var($this->node, FILTER_VALIDATE_BOOLEAN)) ? boolval($this->node) : null;
+        return self::getBooleanValueFromRaw($this->node);
+    }
+
+    private static function getBooleanValueFromRaw(mixed $rawValue): ?bool
+    {
+        return (!self::isNullRaw($rawValue) && filter_var($rawValue, FILTER_VALIDATE_BOOLEAN)) ? boolval($rawValue) : null;
     }
 
     /**
@@ -89,7 +110,12 @@ class FormParseNode implements ParseNode
      */
     public function getIntegerValue(): ?int
     {
-       return !$this->isNull() && filter_var($this->node, FILTER_VALIDATE_INT, FILTER_FLAG_NONE) ? intval($this->node) : null;
+        return self::getIntegerValueFromRaw($this->node);
+    }
+
+    private static function getIntegerValueFromRaw(mixed $rawValue): ?int
+    {
+        return !self::isNullRaw($rawValue) && filter_var($rawValue, FILTER_VALIDATE_INT, FILTER_FLAG_NONE) ? intval($rawValue) : null;
     }
 
     /**
@@ -97,7 +123,12 @@ class FormParseNode implements ParseNode
      */
     public function getFloatValue(): ?float
     {
-        return !$this->isNull() ? floatval($this->node) : null;
+        return self::getFloatValueFromRaw($this->node);
+    }
+
+    private static function getFloatValueFromRaw(mixed $rawValue): ?float
+    {
+        return !self::isNullRaw($rawValue) ? floatval($rawValue) : null;
     }
 
     /**
@@ -177,7 +208,32 @@ class FormParseNode implements ParseNode
         }
         return array_map(static function ($x) use ($typeName) {
             $type = empty($typeName) ? get_debug_type($x) : $typeName;
-            return (new FormParseNode($x))->getAnyValue($type);
+            switch ($type) {
+                case 'bool':
+                    return FormParseNode::getBooleanValueFromRaw($x);
+                case 'string':
+                    return FormParseNode::getStringValueFromRaw($x);
+                case 'int':
+                    return FormParseNode::getIntegerValueFromRaw($x);
+                case 'float':
+                    return FormParseNode::getFloatValueFromRaw($x);
+                case 'null':
+                    return null;
+                case 'array':
+                    return (new FormParseNode($x))->getCollectionOfPrimitiveValues();
+                case Date::class:
+                    return FormParseNode::getDateValueFromRaw($x);
+                case Time::class:
+                    return FormParseNode::getTimeValueFromRaw($x);
+                default:
+                    if (is_subclass_of($type, Enum::class)) {
+                        return !self::isNullRaw($x) ? new $type($x) : null;
+                    }
+                    if (is_subclass_of($type, StreamInterface::class)) {
+                        return (new FormParseNode($x))->getBinaryContent();
+                    }
+                    throw new InvalidArgumentException("Unable to decode type $type");
+            }
         }, $this->node);
     }
 
@@ -239,7 +295,12 @@ class FormParseNode implements ParseNode
      */
     public function getDateValue(): ?Date
     {
-        return $this->node !== null ?  new Date(strval($this->node)): null;
+        return self::getDateValueFromRaw($this->node);
+    }
+
+    private static function getDateValueFromRaw(mixed $rawValue): ?Date
+    {
+        return $rawValue !== null ? new Date(strval($rawValue)) : null;
     }
 
     /**
@@ -248,8 +309,16 @@ class FormParseNode implements ParseNode
      */
     public function getTimeValue(): ?Time
     {
-        $dateTime = $this->getDateTimeValue();
-        return $dateTime !== null ?  Time::createFromDateTime($dateTime) : null;
+        return self::getTimeValueFromRaw($this->node);
+    }
+
+    private static function getTimeValueFromRaw(mixed $rawValue): ?Time
+    {
+        if ($rawValue === null) {
+            return null;
+        }
+        $dateTime = is_string($rawValue) ? new DateTime($rawValue) : null;
+        return $dateTime !== null ? Time::createFromDateTime($dateTime) : null;
     }
 
     /**
@@ -274,11 +343,15 @@ class FormParseNode implements ParseNode
         if (!is_array($this->node)) {
             return null;
         }
-        $result = array_map(static function ($val) use($targetClass) {
-            return $val->getEnumValue($targetClass);
-        }, array_map(static function ($value) {
-            return new FormParseNode($value);
-        }, $this->node));
+        if (!is_subclass_of($targetClass, Enum::class)) {
+            throw new InvalidArgumentException('Invalid enum provided.');
+        }
+        $result = array_map(static function ($x) use ($targetClass) {
+            if (self::isNullRaw($x)) {
+                return null;
+            }
+            return new $targetClass($x);
+        }, $this->node);
         return array_filter($result, fn ($item) => !is_null($item));
     }
 
