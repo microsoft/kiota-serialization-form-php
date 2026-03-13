@@ -145,7 +145,7 @@ class FormParseNode implements ParseNode
         if (!is_subclass_of($type[0], Parsable::class)){
             throw new InvalidArgumentException("Invalid type $type[0] provided.");
         }
-        if (!is_callable($type, true, $callableString)) {
+        if (!is_callable($type, false, $callableString)) {
             throw new InvalidArgumentException('Undefined method '. $type[1]);
         }
         $result = $callableString($this);

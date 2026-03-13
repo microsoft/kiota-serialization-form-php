@@ -168,7 +168,7 @@ class FormParseNodeTest extends TestCase
     }
 
     public function testGetChildNodeWithUrlEncodedKey(): void {
-        $this->parseNode = new FormParseNode(['first%20name' => 'Alice']);
+        $this->parseNode = new FormParseNode(['first name' => 'Alice']);
         $child = $this->parseNode->getChildNode('first%20name');
         $this->assertNotNull($child);
         $this->assertEquals('Alice', $child->getStringValue());
