@@ -102,7 +102,10 @@ class FormParseNode implements ParseNode
 
     private static function getBooleanValueFromRaw(mixed $rawValue): ?bool
     {
-        return (!self::isNullRaw($rawValue) && filter_var($rawValue, FILTER_VALIDATE_BOOLEAN)) ? boolval($rawValue) : null;
+        if (self::isNullRaw($rawValue)) {
+            return null;
+        }
+        return filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
 
     /**

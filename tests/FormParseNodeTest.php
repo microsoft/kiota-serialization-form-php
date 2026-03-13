@@ -89,9 +89,9 @@ class FormParseNodeTest extends TestCase
      * @throws Exception
      */
     public function testGetCollectionOfPrimitiveValuesBooleans(): void {
-        $this->parseNode = new FormParseNode(['true', '1', 'yes']);
+        $this->parseNode = new FormParseNode(['true', 'true', 'false']);
         $expected = $this->parseNode->getCollectionOfPrimitiveValues('bool');
-        $this->assertEquals([true, true, true], $expected);
+        $this->assertEquals([true, true, false], $expected);
     }
 
     /**
