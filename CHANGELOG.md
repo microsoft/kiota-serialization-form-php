@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.1](https://github.com/microsoft/kiota-php/compare/microsoft-kiota-serialization-form-v2.0.0...microsoft-kiota-serialization-form-v2.0.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* correct two failing FormParseNode tests ([9e03df9](https://github.com/microsoft/kiota-php/commit/9e03df96b7a5bc20954debd8777e0f2efa1945c0))
+* correctly parse 'false' string to bool false in FormParseNode ([df4433b](https://github.com/microsoft/kiota-php/commit/df4433b69b877a029e356998fe2804651d772c97))
+* reduce parse node allocations when deserializing primitive types ([24eda87](https://github.com/microsoft/kiota-php/commit/24eda872bcfe883fdfafae44b259f735a03c61c1))
+
+
+### Performance Improvements
+
+* reduce parse node allocations when deserializing primitive types ([fc07fcb](https://github.com/microsoft/kiota-php/commit/fc07fcbea5511ffecbf35096b4feeca97a1a1242))
+
 ## [2.0.0](https://github.com/microsoft/kiota-php/compare/microsoft-kiota-serialization-form-v1.5.2...microsoft-kiota-serialization-form-v2.0.0) (2026-02-24)
 
 
