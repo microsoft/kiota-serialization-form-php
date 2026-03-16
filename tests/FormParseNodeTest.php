@@ -79,6 +79,128 @@ class FormParseNodeTest extends TestCase
     /**
      * @throws Exception
      */
+    public function testGetCollectionOfPrimitiveValuesStrings(): void {
+        $this->parseNode = new FormParseNode(['hello', 'world', 'foo']);
+        $expected = $this->parseNode->getCollectionOfPrimitiveValues();
+        $this->assertEquals(['hello', 'world', 'foo'], $expected);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetCollectionOfPrimitiveValuesBooleans(): void {
+        $this->parseNode = new FormParseNode(['true', 'true', 'false']);
+        $expected = $this->parseNode->getCollectionOfPrimitiveValues('bool');
+        $this->assertEquals([true, true, false], $expected);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetCollectionOfPrimitiveValuesFloats(): void {
+        $this->parseNode = new FormParseNode(['1.1', '2.2', '3.3']);
+        $expected = $this->parseNode->getCollectionOfPrimitiveValues('float');
+        $this->assertEqualsWithDelta([1.1, 2.2, 3.3], $expected, 0.0001);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetCollectionOfPrimitiveValuesWithDateType(): void {
+        $this->parseNode = new FormParseNode(['2022-01-27', '2023-06-15']);
+        $expected = $this->parseNode->getCollectionOfPrimitiveValues(Date::class);
+        $this->assertCount(2, $expected);
+        $this->assertInstanceOf(Date::class, $expected[0]);
+        $this->assertInstanceOf(Date::class, $expected[1]);
+        $this->assertEquals('2022-01-27', (string)$expected[0]);
+        $this->assertEquals('2023-06-15', (string)$expected[1]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetCollectionOfPrimitiveValuesWithTimeType(): void {
+        $this->parseNode = new FormParseNode(['2022-01-27T12:30:00+00:00', '2022-01-27T08:15:45+00:00']);
+        $expected = $this->parseNode->getCollectionOfPrimitiveValues(Time::class);
+        $this->assertCount(2, $expected);
+        $this->assertInstanceOf(Time::class, $expected[0]);
+        $this->assertInstanceOf(Time::class, $expected[1]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetCollectionOfPrimitiveValuesWithEnumType(): void {
+        $this->parseNode = new FormParseNode(['married', 'single']);
+        $expected = $this->parseNode->getCollectionOfPrimitiveValues(MaritalStatus::class);
+        $this->assertCount(2, $expected);
+        $this->assertInstanceOf(MaritalStatus::class, $expected[0]);
+        $this->assertEquals('married', $expected[0]->value());
+        $this->assertEquals('single', $expected[1]->value());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetCollectionOfPrimitiveValuesReturnsNullForNonArray(): void {
+        $this->parseNode = new FormParseNode('not-an-array');
+        $expected = $this->parseNode->getCollectionOfPrimitiveValues();
+        $this->assertNull($expected);
+    }
+
+    public function testGetChildNodeReturnsNullForNonArray(): void {
+        $this->parseNode = new FormParseNode('not-an-array');
+        $child = $this->parseNode->getChildNode('key');
+        $this->assertNull($child);
+    }
+
+    public function testGetChildNodeReturnsNullForMissingKey(): void {
+        $this->parseNode = new FormParseNode(['name' => 'Alice']);
+        $child = $this->parseNode->getChildNode('missing');
+        $this->assertNull($child);
+    }
+
+    public function testGetChildNodeReturnsValueForExistingKey(): void {
+        $this->parseNode = new FormParseNode(['name' => 'Alice', 'age' => '30']);
+        $child = $this->parseNode->getChildNode('name');
+        $this->assertNotNull($child);
+        $this->assertEquals('Alice', $child->getStringValue());
+    }
+
+    public function testGetChildNodeWithUrlEncodedKey(): void {
+        $this->parseNode = new FormParseNode(['first name' => 'Alice']);
+        $child = $this->parseNode->getChildNode('first%20name');
+        $this->assertNotNull($child);
+        $this->assertEquals('Alice', $child->getStringValue());
+    }
+
+    public function testGetObjectValueThrowsForInvalidType(): void {
+        $this->parseNode = new FormParseNode(['name' => 'Alice']);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->parseNode->getObjectValue([\stdClass::class, 'create']);
+    }
+
+    public function testGetObjectValueThrowsForUndefinedMethod(): void {
+        $this->parseNode = new FormParseNode(['name' => 'Alice']);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->parseNode->getObjectValue([Person::class, 'nonExistentMethod']);
+    }
+
+    public function testGetObjectValueReturnsNullForNullNode(): void {
+        $this->parseNode = new FormParseNode(null);
+        $result = $this->parseNode->getObjectValue([Person::class, 'createFromDiscriminatorValue']);
+        $this->assertNull($result);
+    }
+
+    public function testGetObjectValueReturnsNullForNullStringNode(): void {
+        $this->parseNode = new FormParseNode('null');
+        $result = $this->parseNode->getObjectValue([Person::class, 'createFromDiscriminatorValue']);
+        $this->assertNull($result);
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testGetAnyValue(): void {
         $this->parseNode = new FormParseNode(12);
         $expectedInteger = $this->parseNode->getAnyValue('int');
