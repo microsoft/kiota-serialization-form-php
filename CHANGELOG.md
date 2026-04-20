@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/microsoft/kiota-php/compare/microsoft-kiota-serialization-form-v2.0.1...microsoft-kiota-serialization-form-v2.0.2) (2026-04-20)
+
+
+### Miscellaneous Chores
+
+* **microsoft-kiota-serialization-form:** Synchronize microsoft-kiota-php versions
+
 ## [2.0.1](https://github.com/microsoft/kiota-php/compare/microsoft-kiota-serialization-form-v2.0.0...microsoft-kiota-serialization-form-v2.0.1) (2026-03-13)
 
 
