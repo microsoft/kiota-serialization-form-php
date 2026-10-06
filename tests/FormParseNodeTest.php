@@ -296,4 +296,10 @@ class FormParseNodeTest extends TestCase
         $this->stream->rewind();
         $this->assertEquals($this->stream->getContents(), $this->parseNode->getBinaryContent());
     }
+
+    public function testGetBinaryContentFromArrayWithInvalidUtf8Throws(): void {
+        $this->parseNode = new FormParseNode(['name' => "\xB1\x31"]);
+        $this->expectException(\JsonException::class);
+        $this->parseNode->getBinaryContent();
+    }
 }
