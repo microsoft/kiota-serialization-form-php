@@ -17,7 +17,7 @@ Read more about Kiota [here](https://github.com/microsoft/kiota/blob/main/README
 {
     "require": {
         // x-release-please-start-version
-        "microsoft/kiota-serialization-form": "^2.2.2"
+        "microsoft/kiota-serialization-form": "^2.2.3"
         // x-release-please-end
     }
 }
