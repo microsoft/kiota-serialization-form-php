@@ -118,7 +118,11 @@ class FormParseNode implements ParseNode
 
     private static function getIntegerValueFromRaw(mixed $rawValue): ?int
     {
-        return !self::isNullRaw($rawValue) && filter_var($rawValue, FILTER_VALIDATE_INT, FILTER_FLAG_NONE) ? intval($rawValue) : null;
+        if (self::isNullRaw($rawValue)) {
+            return null;
+        }
+        $val = filter_var($rawValue, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+        return $val !== null ? intval($rawValue) : null;
     }
 
     /**
@@ -131,7 +135,11 @@ class FormParseNode implements ParseNode
 
     private static function getFloatValueFromRaw(mixed $rawValue): ?float
     {
-        return !self::isNullRaw($rawValue) ? floatval($rawValue) : null;
+        if (self::isNullRaw($rawValue)) {
+            return null;
+        }
+        $val = filter_var($rawValue, FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE);
+        return $val !== null ? floatval($rawValue) : null;
     }
 
     /**
