@@ -34,6 +34,14 @@ class FormParseNodeTest extends TestCase
         $this->parseNode = new FormParseNode(1243);
         $expected = $this->parseNode->getIntegerValue();
         $this->assertEquals(1243, $expected);
+        $this->parseNode = new FormParseNode('0');
+        $this->assertSame(0, $this->parseNode->getIntegerValue());
+        $this->parseNode = new FormParseNode(0);
+        $this->assertSame(0, $this->parseNode->getIntegerValue());
+        $this->parseNode = new FormParseNode('-42');
+        $this->assertSame(-42, $this->parseNode->getIntegerValue());
+        $this->parseNode = new FormParseNode('not-a-number');
+        $this->assertNull($this->parseNode->getIntegerValue());
     }
 
     public function testGetCollectionOfObjectValues(): void {
@@ -65,6 +73,12 @@ class FormParseNodeTest extends TestCase
         $this->parseNode = new FormParseNode(1243.12);
         $expected = $this->parseNode->getFloatValue();
         $this->assertEquals(1243.12, $expected);
+        $this->parseNode = new FormParseNode('0.0');
+        $this->assertSame(0.0, $this->parseNode->getFloatValue());
+        $this->parseNode = new FormParseNode(0.0);
+        $this->assertSame(0.0, $this->parseNode->getFloatValue());
+        $this->parseNode = new FormParseNode('not-a-number');
+        $this->assertNull($this->parseNode->getFloatValue());
     }
 
     /**
