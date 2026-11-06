@@ -52,7 +52,7 @@ class FormParseNodeFactoryTest extends TestCase
         );
         $countNode = $parseNode->getChildNode('count');
         $this->assertNotNull($countNode);
-        $this->assertEquals('0', $countNode->getStringValue());
+        $this->assertSame('0', $countNode->getStringValue());
         $this->assertSame(0, $countNode->getIntegerValue());
     }
 

@@ -30,10 +30,10 @@ class FormParseNodeTest extends TestCase
     public function testGetIntegerValue(): void {
         $this->parseNode = new FormParseNode(1243.78);
         $expected = $this->parseNode->getIntegerValue();
-        $this->assertEquals(null, $expected);
+        $this->assertNull($expected);
         $this->parseNode = new FormParseNode(1243);
         $expected = $this->parseNode->getIntegerValue();
-        $this->assertEquals(1243, $expected);
+        $this->assertSame(1243, $expected);
         $this->parseNode = new FormParseNode('0');
         $this->assertSame(0, $this->parseNode->getIntegerValue());
         $this->parseNode = new FormParseNode(0);
@@ -72,7 +72,7 @@ class FormParseNodeTest extends TestCase
     public function testGetFloatValue(): void {
         $this->parseNode = new FormParseNode(1243.12);
         $expected = $this->parseNode->getFloatValue();
-        $this->assertEquals(1243.12, $expected);
+        $this->assertSame(1243.12, $expected);
         $this->parseNode = new FormParseNode('0.0');
         $this->assertSame(0.0, $this->parseNode->getFloatValue());
         $this->parseNode = new FormParseNode(0.0);
