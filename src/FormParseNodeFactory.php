@@ -28,7 +28,7 @@ class FormParseNodeFactory implements ParseNodeFactory
             throw new InvalidArgumentException('$rawResponse cannot be empty.');
         }
         try {
-            $fields = array_filter(array_map(fn ($val) => explode("=", $val, 2), explode("&", $streamContents)), fn ($item) => count($item) == 2);
+            $fields = array_filter(array_map(fn ($val) => explode("=", $val, 2), explode("&", $streamContents)), fn ($item) => count($item) === 2);
             $finalResult = [];
             foreach ($fields as $field) {
                 $key = $this->sanitizeKey($field[0]);
