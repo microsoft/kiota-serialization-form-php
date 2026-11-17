@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.3.0](https://github.com/microsoft/kiota-php/compare/microsoft-kiota-serialization-form-v2.2.3...microsoft-kiota-serialization-form-v2.3.0) (2026-11-16)
+
+
+### Bug Fixes
+
+* **serialization-form:** fix zero integer parsing and float validation in FormParseNode ([52d1052](https://github.com/microsoft/kiota-php/commit/52d10524b7e272543515270a669800214e5b5c10))
+* **serialization-form:** support equals signs in values and zero payloads in FormParseNodeFactory ([bb99bd3](https://github.com/microsoft/kiota-php/commit/bb99bd32dfe3ebc78e98b274eb6dab6f5e73a4c7))
+* **serialization:** handle zero values and preserve delimiters in form and text serialization ([d7ec55c](https://github.com/microsoft/kiota-php/commit/d7ec55c3bae22b55723235e2b4836304d46e7023))
+* **serialization:** standardize null scalar serialization, deduplicate bom parsing, and strict count ([1480d6b](https://github.com/microsoft/kiota-php/commit/1480d6bc6306aed543840afb4015ddbdc355f30f))
+
 ## [2.2.3](https://github.com/microsoft/kiota-php/compare/microsoft-kiota-serialization-form-v2.2.2...microsoft-kiota-serialization-form-v2.2.3) (2026-11-03)
 
 

@@ -30,6 +30,32 @@ class FormParseNodeFactoryTest extends TestCase
         $this->assertEquals('application/x-www-form-urlencoded', $parseN->getValidContentType());
     }
 
+    public function testGetRootParseNodeWithEqualsSignInValue(): void
+    {
+        $parseNode = (new FormParseNodeFactory())->getRootParseNode(
+            'application/x-www-form-urlencoded',
+            Utils::streamFor('token=abc=def==&user=john')
+        );
+        $tokenNode = $parseNode->getChildNode('token');
+        $this->assertNotNull($tokenNode);
+        $this->assertEquals('abc=def==', $tokenNode->getStringValue());
+        $userNode = $parseNode->getChildNode('user');
+        $this->assertNotNull($userNode);
+        $this->assertEquals('john', $userNode->getStringValue());
+    }
+
+    public function testGetRootParseNodeWithZeroValue(): void
+    {
+        $parseNode = (new FormParseNodeFactory())->getRootParseNode(
+            'application/x-www-form-urlencoded',
+            Utils::streamFor('count=0')
+        );
+        $countNode = $parseNode->getChildNode('count');
+        $this->assertNotNull($countNode);
+        $this->assertSame('0', $countNode->getStringValue());
+        $this->assertSame(0, $countNode->getIntegerValue());
+    }
+
 
 }
 class TestEntity implements Parsable, AdditionalDataHolder {
